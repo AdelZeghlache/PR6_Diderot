@@ -1,23 +1,28 @@
+package Ringo;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.MulticastSocket;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.UUID;
 
 public class Entite
 {
-	public static int id_entite = 0;
+	public static boolean ttl = false;
 	
 	private ArrayList<String> idmMem;
 	
 	private Ring ring;
-	private int id;
+	private String id;
 	private int lportRecvMess;
 	private int portTcp;
 	private String ipNextMachine;
@@ -28,7 +33,7 @@ public class Entite
 		this.idmMem = new ArrayList<String>();
 		
 		this.ring = null;
-		this.id = Entite.id_entite++;
+		this.id = UUID.randomUUID().toString();
 		this.lportRecvMess = lportRecvMess;
 		this.portTcp = portTcp;
 		this.ipNextMachine = null;
@@ -41,7 +46,7 @@ public class Entite
 		
 		this.ring = ring;
 		
-		this.id = Entite.id_entite++;
+		this.id = UUID.randomUUID().toString();
 		this.lportRecvMess = lportRecvMess;
 		this.portTcp = portTcp;
 		this.ipNextMachine = ipNextMachine;
@@ -52,11 +57,11 @@ public class Entite
 		return this.idmMem;
 	}
 	
-	public int getId() {
+	public String getId(){
 		return id;
 	}
 
-	public void setId(int id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 
@@ -120,7 +125,7 @@ public class Entite
 		this.setIpNextMachine(ip);
 		this.setLportNextMachine(port);
 		
-		mess = "NEWC" + " " + "127.0.0.1" + " " + this.getLportRecvMess() + "\n";
+		mess = "NEWC" + " " + InetAddress.getLocalHost().getHostAddress() + " " + this.getLportRecvMess() + "\n";
 		pw.write(mess);
 		pw.flush();
 		
@@ -159,4 +164,18 @@ public class Entite
 			t3.start();
 		}
 	}
+	
+	public void listenMulticast() throws IOException
+	{
+		MulticastSocket mso = new MulticastSocket(this.getRing().getPortMulticast());
+		ServiceMulticast sm = new ServiceMulticast(mso,this);
+		Thread t4 = new Thread(sm);
+		t4.start(); 
+	}
+	
+	public String toString()
+	{
+		return "Entité " + this.id + "\nMon port d'écoute UDP est " + this.lportRecvMess + "\nJ'envoi mes messages a l'adresse " + this.ipNextMachine + " et sur le port " + this.lportNextMachine;
+	}
 }
+

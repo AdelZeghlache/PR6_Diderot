@@ -1,3 +1,5 @@
+package Ringo;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -47,6 +49,7 @@ public class ServiceTCP implements Runnable
 			
 			pw.write("ACKC\n");
 			pw.flush();
+			
 			this.sock.close();			
 		}
 		catch (IOException e)

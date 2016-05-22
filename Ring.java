@@ -1,3 +1,5 @@
+package Ringo;
+
 public class Ring
 {
 	private String ipMulticast;
