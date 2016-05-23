@@ -113,7 +113,7 @@ public class ServiceRecvUDP implements Runnable
 				}
 				else
 				{
-					this.entite.getidmMem().remove(idm);
+					//this.entite.getidmMem().remove(idm);
 					System.out.println("J'ai déja recu je ne renvoi pas...");
 				}
 				
