@@ -48,12 +48,15 @@ public class ServiceRecvUDP implements Runnable
 				if(!this.entite.getidmMem().contains(idm))
 				{
 					//Je retransmet le message que j'ai recu
-					InetSocketAddress ia = new InetSocketAddress(this.entite.getIpNextMachine(),this.entite.getLportNextMachine());
-					paquet = new DatagramPacket(st.getBytes(),st.getBytes().length,ia);
-					System.out.println("Je transmet " + new String(paquet.getData(),0,paquet.getLength()));
-					//Thread.sleep(5000);
-					this.dso.send(paquet);
-					this.entite.getidmMem().add(idm);
+					InetSocketAddress ia = null;
+					for(int i = 0;i<this.entite.getAlDests().size();i++)
+					{
+						ia = new InetSocketAddress(this.entite.getAlDests().get(i).getIp(),this.entite.getAlDests().get(i).getPort());
+						paquet = new DatagramPacket(st.getBytes(),st.getBytes().length,ia);
+						System.out.println("Je transmet " + new String(paquet.getData(),0,paquet.getLength()));
+						this.dso.send(paquet);
+						this.entite.getidmMem().add(idm);
+					}
 					
 					//Je fais le traitement sur ce message
 					switch(stSplit[0])
@@ -79,27 +82,31 @@ public class ServiceRecvUDP implements Runnable
 							String ipNextSucc = stSplit[4];
 							int portNextSucc = Integer.parseInt(stSplit[5]);
 							
-							if(!ipSucc.equals(this.entite.getIpNextMachine()) || portSucc != this.entite.getLportNextMachine())
+							for(int i = 0;i<this.entite.getAlDests().size();i++)
 							{
-								//Le message GBYE ne m'est pas déstiné, je ne répond rien
-								System.out.println("GBYE pas pour moi");
-								break;
-							}
-							else
-							{
-								//On forme le message EYBG
-								String idmEybg = UUID.randomUUID().toString().substring(0, 8);
-								String eybg = "EYBG " + idmEybg;
+								if(!ipSucc.equals(this.entite.getAlDests().get(i).getIp()) || portSucc != this.entite.getAlDests().get(i).getPort())
+								{
+									//Le message GBYE ne m'est pas déstiné, je ne répond rien
+									System.out.println("GBYE pas pour moi");
+									continue;
+								}
+								else
+								{
+									//On forme le message EYBG
+									String idmEybg = UUID.randomUUID().toString().substring(0, 8);
+									String eybg = "EYBG " + idmEybg;
+									
+									//On envoie le message EYBG
+									paquet = new DatagramPacket(eybg.getBytes(),0,eybg.length(),ia);
+									System.out.println("J'envoi " + eybg);
+									this.dso.send(paquet);
+									this.entite.getidmMem().add(idmEybg);
+									
+									//On change l'ip et le port du succ
+									this.entite.getAlDests().get(i).setIp(ipNextSucc);
+									this.entite.getAlDests().get(i).setPort(portNextSucc);
+								}
 								
-								//On envoie le message EYBG
-								paquet = new DatagramPacket(eybg.getBytes(),0,eybg.length(),ia);
-								System.out.println("J'envoi " + eybg);
-								this.dso.send(paquet);
-								this.entite.getidmMem().add(idmEybg);
-								
-								//On change l'ip et le port du succ
-								this.entite.setIpNextMachine(ipNextSucc);
-								this.entite.setLportNextMachine(portNextSucc);
 							}
 							break;
 					}

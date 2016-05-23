@@ -21,7 +21,7 @@ public class ServiceMulticast implements Runnable
 	{
 		try
 		{
-			this.mso.joinGroup(InetAddress.getByName(this.entite.getRing().getIpMulticast()));
+			this.mso.joinGroup(InetAddress.getByName(this.entite.getRing().getFirst().getIpMulticast()));
 			byte[]data=new byte[100];
 			DatagramPacket paquet=new DatagramPacket(data,data.length);
 			

@@ -47,14 +47,25 @@ public class ServiceEnvoiUDP implements Runnable {
 						this.entite.getidmMem().add(idm);//on ajoute l'id unique pour le mémoriser
 						break;
 					case "GBYE":
-						idm = UUID.randomUUID().toString().substring(0, 8);
-						realMess = messSplit[0] + " " + idm + " " + InetAddress.getLocalHost().getHostAddress() + " " + this.entite.getLportRecvMess() + " " + this.entite.getIpNextMachine() + " " + this.entite.getLportNextMachine();
-						valid = true;
-						this.entite.getidmMem().add(idm);
-						break;
+						if(this.entite.getAlDests().size() >= 2)
+						{
+							//Pas de GBYE quand on est en double anneau
+							System.out.println("Impossible de quitter en étant une entité doubleur");
+							valid = false;
+							break;
+						}
+						else
+						{
+							idm = UUID.randomUUID().toString().substring(0, 8);
+							realMess = messSplit[0] + " " + idm + " " + InetAddress.getLocalHost().getHostAddress() + " " + this.entite.getLportRecvMess() + " " + this.entite.getAlDests().get(0).getIp() + " " + this.entite.getAlDests().get(0).getPort();
+							valid = true;
+							this.entite.getidmMem().add(idm);
+							break;
+						}
+						
 					case "TEST":
 						idm = UUID.randomUUID().toString().substring(0, 8);
-						realMess = messSplit[0] + " " + idm + " " + this.entite.getRing().getIpMulticast() + " " + this.entite.getRing().getPortMulticast();
+						realMess = messSplit[0] + " " + idm + " " + this.entite.getRing().getFirst().getIpMulticast() + " " + this.entite.getRing().getFirst().getPortMulticast();
 						valid = true;
 						this.entite.getidmMem().add(idm);
 						isTest = true;
@@ -67,10 +78,16 @@ public class ServiceEnvoiUDP implements Runnable {
 				if(valid)
 				{
 					byte[] data = realMess.getBytes();
-					InetSocketAddress ia = new InetSocketAddress(this.entite.getIpNextMachine(),this.entite.getLportNextMachine());
-					DatagramPacket paquet = new DatagramPacket(data,data.length,ia);
-					System.out.println("J'envoie " + new String(paquet.getData(),0,paquet.getLength()));
-					this.dso.send(paquet);
+					InetSocketAddress ia;
+					DatagramPacket paquet;
+					
+					for(int i = 0;i<this.entite.getAlDests().size();i++)
+					{
+						ia = new InetSocketAddress(this.entite.getAlDests().get(i).getIp(),this.entite.getAlDests().get(i).getPort());
+						paquet = new DatagramPacket(data,data.length,ia);
+						System.out.println("J'envoie " + new String(paquet.getData(),0,paquet.getLength()));
+						this.dso.send(paquet);
+					}
 					
 					if(isTest)
 					{
@@ -83,7 +100,7 @@ public class ServiceEnvoiUDP implements Runnable {
 						}
 						if(i >= 5){
 							data = "DOWN".getBytes();
-							ia = new InetSocketAddress(this.entite.getRing().getIpMulticast(),this.entite.getRing().getPortMulticast());
+							ia = new InetSocketAddress(this.entite.getRing().getFirst().getIpMulticast(),this.entite.getRing().getFirst().getPortMulticast());
 							paquet = new DatagramPacket(data,data.length,ia);
 							System.out.println("J'envoie DOWN");
 							this.dso.send(paquet);

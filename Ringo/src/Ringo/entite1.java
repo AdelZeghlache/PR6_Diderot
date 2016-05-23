@@ -14,6 +14,7 @@ public class entite1
 		Ring r1 = new Ring("235.255.255.255",9998);
 		
 		Entite e1 = new Entite(r1,6969,5555,InetAddress.getLocalHost().getHostAddress(),6969);
+		System.out.println(e1.toString());
 		
 		e1.envoiUDP();
 		e1.recvUDP();
