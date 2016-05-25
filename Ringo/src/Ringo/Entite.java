@@ -18,7 +18,10 @@ import java.util.UUID;
 
 public class Entite
 {
-	public static boolean ttl = false;
+	public static int nbTest = 0;//permet de savoir combien de test sont envoyé, pour savoir combien sont revenu
+	public static ArrayList<Ring> alRing = new ArrayList<Ring>(); //permet de savoir dans quel anneau le test ne s'est pas renvoyé
+	
+	private MulticastSocket mso;
 	
 	private ArrayList<String> idmMem;
 	private ArrayList<Dests> alDests;
@@ -26,8 +29,6 @@ public class Entite
 	private String id;
 	private int lportRecvMess;
 	private int portTcp;
-//	private String ipNextMachine;
-//	private int lportNextMachine;
 	
 	public Entite(int lportRecvMess,int portTcp)
 	{
@@ -38,8 +39,6 @@ public class Entite
 		this.id = UUID.randomUUID().toString().substring(0, 8);
 		this.lportRecvMess = lportRecvMess;
 		this.portTcp = portTcp;
-		//this.ipNextMachine = null;
-		//this.lportNextMachine = 0;
 	}
 	
 	public Entite(Ring ring,int lportRecvMess,int portTcp,String ipNextMachine,int lportNextMachine)
@@ -55,9 +54,6 @@ public class Entite
 		
 		Dests d = new Dests(ipNextMachine,lportNextMachine);
 		this.alDests.add(d);
-		
-//		this.ipNextMachine = ipNextMachine;
-//		this.lportNextMachine = lportNextMachine;
 	}
 	
 	public ArrayList<String> getidmMem(){
@@ -97,23 +93,10 @@ public class Entite
 		this.portTcp = portTcp;
 	}
 	
-	
-
-//	public String getIpNextMachine() {
-//		return ipNextMachine;
-//	}
-//
-//	public void setIpNextMachine(String ipNextMachine) {
-//		this.ipNextMachine = ipNextMachine;
-//	}
-
-//	public int getLportNextMachine() {
-//		return lportNextMachine;
-//	}
-//
-//	public void setLportNextMachine(int lportNextMachine) {
-//		this.lportNextMachine = lportNextMachine;
-//	}
+	public MulticastSocket getMso()
+	{
+		return this.mso;
+	}
 	
 	public void insert(Ring ring, String ipPrecMachine, int portPrecMachine) throws UnknownHostException, IOException
 	{
@@ -135,8 +118,6 @@ public class Entite
 		
 		Dests d = new Dests(ip,port);
 		this.getAlDests().add(d);
-//		this.setIpNextMachine(ip);
-//		this.setLportNextMachine(port);
 		
 		mess = "NEWC" + " " + InetAddress.getLocalHost().getHostAddress() + " " + this.getLportRecvMess() + "\n";
 		pw.write(mess);
@@ -163,14 +144,13 @@ public class Entite
 		String messSplit[] = mess.split(" ");
 		String ip = messSplit[1];
 		
-//		this.setIpNextMachine(ip);
-		
 		mess = "DUPL" + " " + InetAddress.getLocalHost().getHostAddress() + " " + this.getLportRecvMess() + " " + ring.getIpMulticast() + " " + ring.getPortMulticast() + "\n";
 		pw.write(mess);
 		pw.flush();
 		
 		mess = br.readLine();
-//		this.setLportNextMachine(Integer.parseInt(mess.split(" ")[1]));
+		
+		this.getRing().add(ring);
 		
 		Dests d = new Dests(ip,Integer.parseInt(mess.split(" ")[1]));
 		this.getAlDests().add(d);
@@ -212,8 +192,8 @@ public class Entite
 	
 	public void listenMulticast() throws IOException
 	{
-		MulticastSocket mso = new MulticastSocket(this.listRing.getFirst().getPortMulticast());
-		ServiceMulticast sm = new ServiceMulticast(mso,this);
+		this.mso = new MulticastSocket(this.listRing.getFirst().getPortMulticast());
+		ServiceMulticast sm = new ServiceMulticast(mso,this,InetAddress.getByName(this.getRing().getFirst().getIpMulticast()));
 		Thread t4 = new Thread(sm);
 		t4.start(); 
 	}
@@ -222,14 +202,21 @@ public class Entite
 	{
 		String ret = "";
 		ret += "Entité " + this.id + "\nMon port d'écoute UDP est " + this.lportRecvMess + "\n";
-		if(this.getAlDests().size() == 1)
-			ret += "J'envoi mes messages a l'adresse " + this.getAlDests().get(0).getIp() + " et sur le port " + this.getAlDests().get(0).getPort();
+		if(this.getAlDests().size() == 1){
+			ret += "J'envoi mes messages a l'adresse " + this.getAlDests().get(0).getIp() + " et sur le port " + this.getAlDests().get(0).getPort() + "\n";
+			ret += "Je suis sur un anneau dont l'IP de multi difussion est " + this.getRing().getFirst().getIpMulticast() + " et donc le port de multi difussion est " + this.getRing().getFirst().getPortMulticast();
+		}
 		else
 		{
 			ret += "J'envoi mes messages aux destinaires suivants : \n";
 			for(int i = 0;i<this.getAlDests().size();i++)
 			{
 				ret += this.getAlDests().get(i).getIp() + " " + this.getAlDests().get(i).getPort() + "\n";
+			}
+			ret += "Et je suis sur les anneaux dont l'addresse et le port de multi diffusion sont les suivants : \n";
+			for(int i = 0;i<this.getRing().size();i++)
+			{
+				ret += this.getRing().get(i).getIpMulticast() + " : " + this.getRing().get(i).getPortMulticast() + "\n";
 			}
 		}
 		return ret;

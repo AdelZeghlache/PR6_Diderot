@@ -10,18 +10,20 @@ public class ServiceMulticast implements Runnable
 {
 	private MulticastSocket mso;
 	private Entite entite;
+	private InetAddress ip;
 	
-	public ServiceMulticast(MulticastSocket mso, Entite entite)
+	public ServiceMulticast(MulticastSocket mso, Entite entite, InetAddress ip)
 	{
 		this.mso = mso;
 		this.entite = entite;
+		this.ip = ip;
 	}
 	
 	public void run() 
 	{
 		try
 		{
-			this.mso.joinGroup(InetAddress.getByName(this.entite.getRing().getFirst().getIpMulticast()));
+			this.mso.joinGroup(ip);
 			byte[]data=new byte[100];
 			DatagramPacket paquet=new DatagramPacket(data,data.length);
 			
@@ -35,9 +37,28 @@ public class ServiceMulticast implements Runnable
 				switch(stSplit[0])
 				{
 					case "DOWN":
-						System.exit(1);
+						//Si on est une entité doubleur, on ne se coupe pas mais on envoi plus de message sur l'anneau cassé, sinon on quitte
+						if(this.entite.getAlDests().size() >= 2)
+						{
+							for(int i = 0;i<this.entite.getRing().size();i++)
+							{
+								for(int j = 0;j<Entite.alRing.size();j++)
+								{
+									if(this.entite.getRing().get(i).equals(Entite.alRing.get(j)))
+									{
+										this.entite.getRing().remove(i);
+										this.entite.getAlDests().remove(i);
+									}
+								}
+							}
+							Entite.alRing.clear();
+						}
+						else
+						{
+							Entite.alRing.clear();
+							System.exit(1);
+						}
 				}
-				
 			}
 		} 
 		catch (UnknownHostException e)

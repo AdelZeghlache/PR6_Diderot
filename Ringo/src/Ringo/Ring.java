@@ -26,4 +26,17 @@ public class Ring
 	public void setPortMulticast(int portMulticast) {
 		this.portMulticast = portMulticast;
 	}
+	
+	public String toString()
+	{
+		return this.ipMulticast + ":" + this.portMulticast;
+	}
+	
+	public boolean equals(Object o)
+	{
+		if(!(o instanceof Ring))
+			return false;
+		Ring other = (Ring)o;
+		return this.ipMulticast.equals(other.ipMulticast) && this.portMulticast == other.portMulticast;
+	}
 }

@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.net.InetAddress;
+import java.net.MulticastSocket;
 import java.net.Socket;
 
 public class ServiceTCP implements Runnable 
@@ -76,12 +78,15 @@ public class ServiceTCP implements Runnable
 						Ring newRing = new Ring(duplIpDiff,duplPortDiff);
 						this.entite.getRing().add(newRing);
 						
+						MulticastSocket mso = new MulticastSocket(duplPortDiff);
+						ServiceMulticast sm = new ServiceMulticast(mso,this.entite,InetAddress.getByName(duplIpDiff));
+						Thread t = new Thread(sm);
+						t.start();
+						
 						pw.write("ACKD " + this.entite.getLportRecvMess() + "\n");
 						pw.flush();
 						
 						this.sock.close();
-						System.out.println("APRES DUPL");
-						System.out.println(this.entite.toString());
 						break;
 				}
 			}		

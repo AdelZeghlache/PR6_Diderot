@@ -64,10 +64,24 @@ public class ServiceEnvoiUDP implements Runnable {
 						}
 						
 					case "TEST":
-						idm = UUID.randomUUID().toString().substring(0, 8);
-						realMess = messSplit[0] + " " + idm + " " + this.entite.getRing().getFirst().getIpMulticast() + " " + this.entite.getRing().getFirst().getPortMulticast();
-						valid = true;
-						this.entite.getidmMem().add(idm);
+						Entite.nbTest = 0;
+						for(int i = 0;i<this.entite.getAlDests().size();i++)
+						{
+							idm = UUID.randomUUID().toString().substring(0, 8);
+							realMess = messSplit[0] + " " + idm + " " + this.entite.getRing().get(i).getIpMulticast() + " " + this.entite.getRing().get(i).getPortMulticast();
+							Ring r = new Ring(this.entite.getRing().get(i).getIpMulticast(),this.entite.getRing().get(i).getPortMulticast());
+							Entite.alRing.add(r);
+							this.entite.getidmMem().add(idm);
+							
+							//On envoie 2 messages différents, on l'envoi donc ici
+							byte[] data = realMess.getBytes();
+							InetSocketAddress ia = new InetSocketAddress(this.entite.getAlDests().get(i).getIp(),this.entite.getAlDests().get(i).getPort());
+							DatagramPacket paquet = new DatagramPacket(data,data.length,ia);
+							System.out.println("J'envoie " + new String(new String(paquet.getData(),0,paquet.getLength())));
+							this.dso.send(paquet);
+							Entite.nbTest++;
+						}
+						valid = false;
 						isTest = true;
 						break;
 					default:
@@ -75,43 +89,53 @@ public class ServiceEnvoiUDP implements Runnable {
 						break;	
 				}
 				
-				if(valid)
+				//Si le message est TEST, on attend qu'il(s) revienne(nt)
+				if(isTest)
 				{
-					byte[] data = realMess.getBytes();
-					InetSocketAddress ia;
-					DatagramPacket paquet;
-					
-					for(int i = 0;i<this.entite.getAlDests().size();i++)
-					{
-						ia = new InetSocketAddress(this.entite.getAlDests().get(i).getIp(),this.entite.getAlDests().get(i).getPort());
-						paquet = new DatagramPacket(data,data.length,ia);
-						System.out.println("J'envoie " + new String(paquet.getData(),0,paquet.getLength()));
-						this.dso.send(paquet);
+					int i = 0;
+					//Si la variable nbTest ne revient pas à 0 en 5 secondes, c'est qu'on a pas recu le ou les messages TEST envoyés, un des anneaux est donc cassé
+					while(i<5 && Entite.nbTest != 0){
+						System.out.println("...");
+						Thread.sleep(1000);
+						i++;
 					}
-					
-					if(isTest)
-					{
-						Entite.ttl = true;
-						int i = 0;
-						while(Entite.ttl && i<5){
-							System.out.println("...");
-							Thread.sleep(1000);
-							i++;
-						}
-						if(i >= 5){
-							data = "DOWN".getBytes();
-							ia = new InetSocketAddress(this.entite.getRing().getFirst().getIpMulticast(),this.entite.getRing().getFirst().getPortMulticast());
+					//On envoi donc DOWN a tous les anneaux de Entite.alRing, car le TEST ne répond a rien
+					if(i >= 5 && Entite.alRing.size() >= 1){
+						byte[] data = "DOWN".getBytes();
+						InetSocketAddress ia;
+						DatagramPacket paquet;
+						for(int j = 0;j<Entite.alRing.size();j++)
+						{
+							ia = new InetSocketAddress(Entite.alRing.get(j).getIpMulticast(),Entite.alRing.get(j).getPortMulticast());
 							paquet = new DatagramPacket(data,data.length,ia);
-							System.out.println("J'envoie DOWN");
+							System.out.println("J'envoie DOWN sur l'anneau " + Entite.alRing.get(j).toString());
 							this.dso.send(paquet);
 						}
-							
-						isTest = false;
 					}
+					//Entite.alRing.clear();
+					isTest = false;
+					
 				}
-				else
+				else //Sinon c'est un autre message, on peut vérifier si il est valide
 				{
-					System.err.println("Message inconnu ou invalide...");
+					if(valid)
+					{
+						byte[] data = realMess.getBytes();
+						InetSocketAddress ia;
+						DatagramPacket paquet;
+						
+						for(int i = 0;i<this.entite.getAlDests().size();i++)
+						{
+							ia = new InetSocketAddress(this.entite.getAlDests().get(i).getIp(),this.entite.getAlDests().get(i).getPort());
+							paquet = new DatagramPacket(data,data.length,ia);
+							System.out.println("J'envoie " + new String(paquet.getData(),0,paquet.getLength()));
+							this.dso.send(paquet);
+						}
+					}
+					else
+					{
+						System.err.println("Message inconnu ou invalide...");
+					}
 				}
 			}
 			catch(Exception e)

@@ -31,9 +31,17 @@ public class ServiceRecvUDP implements Runnable
 				String[] stSplit = st.split(" ");
 				String idm = stSplit[1];
 				
-				//Tester si le message est déstiné a l'anneau courant ou non
+				//Si on recoit un message test qu'on a deja vu, c'est que l'anneau n'est pas cassé
 				if(this.entite.getidmMem().contains(idm) && stSplit[0].equals("TEST")){
-					Entite.ttl = false;
+					//On supprime le test recu de l'arraylist d'anneau car il n'est pas cassé, on créer un nouvel objet Ring correspondant aux infos contenu dans le message TEST
+					//Puis on le supprime de l'arraylist grace a la méthode remove(Ring ring)
+					
+					String ipMulticastRing = stSplit[2];
+					int portMulticastRing = Integer.parseInt(stSplit[3]);
+					
+					Ring r = new Ring(ipMulticastRing,portMulticastRing);
+					Entite.alRing.remove(r);
+					Entite.nbTest--;
 				}
 				
 				//premier switch pour les messages a ne pas retransmettre, même si c'est la première fois qu'on les recoit
@@ -70,10 +78,14 @@ public class ServiceRecvUDP implements Runnable
 										InetAddress.getLocalHost().getHostAddress() + 
 										" " + 
 										this.entite.getLportRecvMess();
-							paquet = new DatagramPacket(memb.getBytes(),0,memb.length(),ia);
-							System.out.println("J'envoi " + memb);
-							this.dso.send(paquet);
-							this.entite.getidmMem().add(idmMemb);
+							for(int i = 0;i<this.entite.getAlDests().size();i++)
+							{
+								ia = new InetSocketAddress(this.entite.getAlDests().get(i).getIp(),this.entite.getAlDests().get(i).getPort());
+								paquet = new DatagramPacket(memb.getBytes(),0,memb.length(),ia);
+								System.out.println("J'envoi " + memb);
+								this.dso.send(paquet);
+								this.entite.getidmMem().add(idmMemb);
+							}
 							break;
 						case "GBYE":
 							String ipSucc = stSplit[2];
@@ -87,7 +99,6 @@ public class ServiceRecvUDP implements Runnable
 								if(!ipSucc.equals(this.entite.getAlDests().get(i).getIp()) || portSucc != this.entite.getAlDests().get(i).getPort())
 								{
 									//Le message GBYE ne m'est pas déstiné, je ne répond rien
-									System.out.println("GBYE pas pour moi");
 									continue;
 								}
 								else
@@ -97,6 +108,7 @@ public class ServiceRecvUDP implements Runnable
 									String eybg = "EYBG " + idmEybg;
 									
 									//On envoie le message EYBG
+									ia = new InetSocketAddress(ipSucc,portSucc); //On envoi le EYGB uniquement a celui qui a demandé GBYE
 									paquet = new DatagramPacket(eybg.getBytes(),0,eybg.length(),ia);
 									System.out.println("J'envoi " + eybg);
 									this.dso.send(paquet);
@@ -105,8 +117,14 @@ public class ServiceRecvUDP implements Runnable
 									//On change l'ip et le port du succ
 									this.entite.getAlDests().get(i).setIp(ipNextSucc);
 									this.entite.getAlDests().get(i).setPort(portNextSucc);
+									
+									if(this.entite.getRing().size() == 2 && this.entite.getAlDests().get(i).getIp().equals(InetAddress.getLocalHost().getHostAddress()) && this.entite.getAlDests().get(i).getPort() == this.entite.getLportRecvMess())
+									{
+										//On est dans le cas ou on s'envoi les messages a nous même alors qu'on est une entité doubleur, on supprime donc l'anneau double ou on est seul dessus
+										this.entite.getRing().remove(i);
+										this.entite.getAlDests().remove(i);
+									}
 								}
-								
 							}
 							break;
 					}
@@ -114,7 +132,7 @@ public class ServiceRecvUDP implements Runnable
 				else
 				{
 					//this.entite.getidmMem().remove(idm);
-					System.out.println("J'ai déja recu je ne renvoi pas...");
+					System.out.println("J'ai déja recu je ne transmet pas...");
 				}
 				
 			}

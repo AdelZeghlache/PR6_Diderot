@@ -26,5 +26,8 @@ public class Dests {
 		this.port = port;
 	}
 	
-	
+	public String toString()
+	{
+		return this.ip + ":" + this.port;
+	}
 }
