@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.net.ConnectException;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
@@ -129,34 +130,47 @@ public class Entite
 		s.close();
 	}
 	
-	public void dupl(Ring ring, String ipPrecMachine, int portPrecMachine) throws UnknownHostException, IOException
+	public void dupl(Ring ring, String ipPrecMachine, int portPrecMachine) throws IOException
 	{
-		//tester si c'est déja insérer...
-		Socket s = new Socket(ipPrecMachine, portPrecMachine);
-		
-		PrintWriter pw = new PrintWriter(new OutputStreamWriter(s.getOutputStream()));
-		BufferedReader br = new BufferedReader(new InputStreamReader(s.getInputStream()));
-		
-		String mess = br.readLine();
-		System.out.println(mess);
-		
-		//Pareil, le message est envoyé automatiquement donc de la bonne forme
-		String messSplit[] = mess.split(" ");
-		
-		mess = "DUPL" + " " + InetAddress.getLocalHost().getHostAddress() + " " + this.getLportRecvMess() + " " + ring.getIpMulticast() + " " + ring.getPortMulticast() + "\n";
-		pw.write(mess);
-		pw.flush();
-		
-		mess = br.readLine();
-		
-		this.getRing().add(ring);
-		
-		Dests d = new Dests(ipPrecMachine,Integer.parseInt(mess.split(" ")[1]));
-		this.getAlDests().add(d);
-		
-		System.out.println(mess);
-		
-		s.close();
+		try
+		{
+			//tester si c'est déja insérer...
+			Socket s = new Socket(ipPrecMachine, portPrecMachine);
+			
+			PrintWriter pw = new PrintWriter(new OutputStreamWriter(s.getOutputStream()));
+			BufferedReader br = new BufferedReader(new InputStreamReader(s.getInputStream()));
+			
+			String mess = br.readLine();
+			System.out.println(mess);
+			
+			//Pareil, le message est envoyé automatiquement donc de la bonne forme
+			String messSplit[] = mess.split(" ");
+			
+			mess = "DUPL" + " " + InetAddress.getLocalHost().getHostAddress() + " " + this.getLportRecvMess() + " " + ring.getIpMulticast() + " " + ring.getPortMulticast() + "\n";
+			pw.write(mess);
+			pw.flush();
+			
+			mess = br.readLine();
+			
+			this.getRing().add(ring);
+			
+			Dests d = new Dests(ipPrecMachine,Integer.parseInt(mess.split(" ")[1]));
+			this.getAlDests().add(d);
+			
+			System.out.println(mess);
+			
+			s.close();
+		}
+		catch(UnknownHostException e)
+		{
+			System.out.println("Impossible de se connecter � cette addresse");
+			System.exit(-1);
+		}
+		catch(ConnectException e)
+		{
+			System.out.println("Addresse inacessible. Temps de connexion �coul�");
+			System.exit(-1);
+		}
 	}
 	
 	public void envoiUDP() throws SocketException
