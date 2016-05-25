@@ -142,7 +142,6 @@ public class Entite
 		
 		//Pareil, le message est envoyé automatiquement donc de la bonne forme
 		String messSplit[] = mess.split(" ");
-		String ip = messSplit[1];
 		
 		mess = "DUPL" + " " + InetAddress.getLocalHost().getHostAddress() + " " + this.getLportRecvMess() + " " + ring.getIpMulticast() + " " + ring.getPortMulticast() + "\n";
 		pw.write(mess);
@@ -152,7 +151,7 @@ public class Entite
 		
 		this.getRing().add(ring);
 		
-		Dests d = new Dests(ip,Integer.parseInt(mess.split(" ")[1]));
+		Dests d = new Dests(ipPrecMachine,Integer.parseInt(mess.split(" ")[1]));
 		this.getAlDests().add(d);
 		
 		System.out.println(mess);

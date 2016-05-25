@@ -78,6 +78,7 @@ public class ServiceTCP implements Runnable
 						Ring newRing = new Ring(duplIpDiff,duplPortDiff);
 						this.entite.getRing().add(newRing);
 						
+						//On lance un nouveau thread pour s'abonnner au nouvel anneau si on est une entité doubleur
 						MulticastSocket mso = new MulticastSocket(duplPortDiff);
 						ServiceMulticast sm = new ServiceMulticast(mso,this.entite,InetAddress.getByName(duplIpDiff));
 						Thread t = new Thread(sm);
@@ -85,7 +86,7 @@ public class ServiceTCP implements Runnable
 						
 						pw.write("ACKD " + this.entite.getLportRecvMess() + "\n");
 						pw.flush();
-						
+						System.out.println(this.entite.toString());
 						this.sock.close();
 						break;
 				}
