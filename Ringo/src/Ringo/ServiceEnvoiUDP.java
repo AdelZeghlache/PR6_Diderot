@@ -25,7 +25,6 @@ public class ServiceEnvoiUDP implements Runnable {
 		
 		boolean isTest = false;
 		boolean valid = false;
-		boolean app = true;
 		
 		String mess;
 		String messSplit[];
@@ -42,7 +41,7 @@ public class ServiceEnvoiUDP implements Runnable {
 				switch(messSplit[0])
 				{
 					case "WHOS":
-						idm = UUID.randomUUID().toString().substring(0, 8);
+						idm = this.entite.generateUniqId();
 						realMess = messSplit[0] + " " + idm;
 						valid = true;
 						this.entite.getidmMem().add(idm);//on ajoute l'id unique pour le mémoriser
@@ -57,8 +56,8 @@ public class ServiceEnvoiUDP implements Runnable {
 						}
 						else
 						{
-							idm = UUID.randomUUID().toString().substring(0, 8);
-							realMess = messSplit[0] + " " + idm + " " + InetAddress.getLocalHost().getHostAddress() + " " + this.entite.getLportRecvMess() + " " + this.entite.getAlDests().get(0).getIp() + " " + this.entite.getAlDests().get(0).getPort();
+							idm = this.entite.generateUniqId();
+							realMess = messSplit[0] + " " + idm + " " + this.entite.getFirstNonLoopbackAddress() + " " + this.entite.getLportRecvMess() + " " + this.entite.getAlDests().get(0).getIp() + " " + this.entite.getAlDests().get(0).getPort();
 							valid = true;
 							this.entite.getidmMem().add(idm);
 							break;
@@ -68,7 +67,7 @@ public class ServiceEnvoiUDP implements Runnable {
 						Entite.nbTest = 0;
 						for(int i = 0;i<this.entite.getAlDests().size();i++)
 						{
-							idm = UUID.randomUUID().toString().substring(0, 8);
+							idm = this.entite.generateUniqId();
 							realMess = messSplit[0] + " " + idm + " " + this.entite.getRing().get(i).getIpMulticast() + " " + this.entite.getRing().get(i).getPortMulticast();
 							Ring r = new Ring(this.entite.getRing().get(i).getIpMulticast(),this.entite.getRing().get(i).getPortMulticast());
 							Entite.alRing.add(r);
@@ -78,7 +77,8 @@ public class ServiceEnvoiUDP implements Runnable {
 							byte[] data = realMess.getBytes();
 							InetSocketAddress ia = new InetSocketAddress(this.entite.getAlDests().get(i).getIp(),this.entite.getAlDests().get(i).getPort());
 							DatagramPacket paquet = new DatagramPacket(data,data.length,ia);
-							System.out.println("J'envoie " + new String(new String(paquet.getData(),0,paquet.getLength())));
+							if(this.entite.isVerbeux())
+								System.out.println("J'envoie " + new String(new String(paquet.getData(),0,paquet.getLength())));
 							this.dso.send(paquet);
 							Entite.nbTest++;
 						}
@@ -104,9 +104,9 @@ public class ServiceEnvoiUDP implements Runnable {
 								System.out.println("Choix invalide, recommencer : ");
 								choix = sc2.nextInt();
 							}
-							app = true;
+							this.entite.setApp(true);
 							if(choix != 0)
-								this.entite.getAlApp().get(choix-1).exec(UUID.randomUUID().toString().substring(0,8),this.entite,this.dso);
+								this.entite.getAlApp().get(choix-1).exec(this.entite.generateUniqId(),this.entite,this.dso);
 							break;
 						}
 					default:
@@ -133,7 +133,8 @@ public class ServiceEnvoiUDP implements Runnable {
 						{
 							ia = new InetSocketAddress(Entite.alRing.get(j).getIpMulticast(),Entite.alRing.get(j).getPortMulticast());
 							paquet = new DatagramPacket(data,data.length,ia);
-							System.out.println("J'envoie DOWN sur l'anneau " + Entite.alRing.get(j).toString());
+							if(this.entite.isVerbeux())
+								System.out.println("J'envoie DOWN sur l'anneau " + Entite.alRing.get(j).toString());
 							this.dso.send(paquet);
 						}
 					}
@@ -153,11 +154,12 @@ public class ServiceEnvoiUDP implements Runnable {
 						{
 							ia = new InetSocketAddress(this.entite.getAlDests().get(i).getIp(),this.entite.getAlDests().get(i).getPort());
 							paquet = new DatagramPacket(data,data.length,ia);
-							System.out.println("J'envoie " + new String(paquet.getData(),0,paquet.getLength()));
+							if(this.entite.isVerbeux())
+								System.out.println("J'envoie " + new String(paquet.getData(),0,paquet.getLength()));
 							this.dso.send(paquet);
 						}
 					}
-					else if(!app)
+					else if(!this.entite.isApp())
 					{
 						System.err.println("Message inconnu ou invalide...");
 					}

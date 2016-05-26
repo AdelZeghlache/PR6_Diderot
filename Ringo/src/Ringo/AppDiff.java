@@ -31,7 +31,8 @@ public class AppDiff extends Application
 			{
 				ia = new InetSocketAddress(entite.getAlDests().get(i).getIp(),entite.getAlDests().get(i).getPort());
 				paquet = new DatagramPacket(data,data.length,ia);
-				System.out.println("J'envoie " + new String(paquet.getData(),0,paquet.getLength()));
+				if(entite.isVerbeux())
+					System.out.println("J'envoie " + new String(paquet.getData(),0,paquet.getLength()));
 				dso.send(paquet);
 				entite.getidmMem().add(idm);
 			}

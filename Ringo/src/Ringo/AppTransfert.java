@@ -48,7 +48,6 @@ public class AppTransfert extends Application
 				dso.send(paquet);
 				entite.getidmMem().add(idm);
 			}
-			//sc.close();
 		}
 		catch(IOException e)
 		{
@@ -80,8 +79,8 @@ public class AppTransfert extends Application
 //				    bb.putInt(nbmess);
 //				    bb.flip();
 					
-				    String idm = UUID.randomUUID().toString().substring(0, 8);
-				    this.idTrans = UUID.randomUUID().toString().substring(0, 8);
+				    String idm = entite.generateUniqId();
+				    this.idTrans = entite.generateUniqId();
 					String ret = "APPL " + idm + " " + this.id + " " + "ROK " + this.idTrans + " " + filename.length() + " " + filename + " " + nbmess;
 
 					byte[] data = ret.getBytes();
@@ -92,7 +91,8 @@ public class AppTransfert extends Application
 					{
 						ia = new InetSocketAddress(entite.getAlDests().get(j).getIp(),entite.getAlDests().get(j).getPort());
 						paquet = new DatagramPacket(data,data.length,ia);
-						System.out.println("J'envoie " + new String(paquet.getData(),0,paquet.getLength()));
+						if(entite.isVerbeux())
+							System.out.println("J'envoie " + new String(paquet.getData(),0,paquet.getLength()));
 						dso.send(paquet);
 						entite.getidmMem().add(idm);
 					}
@@ -109,11 +109,8 @@ public class AppTransfert extends Application
 						max = 462;
 					for(int j = 0;j<nbmess;j++)
 					{
-						System.out.println("min : " + min + "\nmax : " + max);
-						System.out.println("j : " + j + "\nnbmess-1 : " + (nbmess-1));
-						System.out.println("foile.length" + file.length);
 						String content = new String(Arrays.copyOfRange(file, min, max),0,Arrays.copyOfRange(file, min, max).length);
-						String sen = "APPL " + UUID.randomUUID().toString().substring(0, 8) + " " + this.id + " " + "SEN " + this.idTrans + " " + j + " " + content.length() + " " + content;
+						String sen = "APPL " + entite.generateUniqId() + " " + this.id + " " + "SEN " + this.idTrans + " " + j + " " + content.length() + " " + content;
 						min = max;
 						if(j == nbmess-2)
 							max = file.length;
@@ -126,10 +123,11 @@ public class AppTransfert extends Application
 						{
 							ia = new InetSocketAddress(entite.getAlDests().get(k).getIp(),entite.getAlDests().get(k).getPort());
 							paquet = new DatagramPacket(data,data.length,ia);
-							System.out.println("J'envoie " + new String(paquet.getData(),0,paquet.getLength()));
+							if(entite.isVerbeux())
+								System.out.println("J'envoie " + new String(paquet.getData(),0,paquet.getLength()));
 							dso.send(paquet);
 
-							try{Thread.sleep(500);}catch(InterruptedException e){e.printStackTrace();}
+							try{Thread.sleep(100);}catch(InterruptedException e){e.printStackTrace();}
 						}
 					}
 				} 
@@ -186,5 +184,6 @@ public class AppTransfert extends Application
 				e.printStackTrace();
 			}	
 		}
+		entite.setApp(false);
 	}
 }

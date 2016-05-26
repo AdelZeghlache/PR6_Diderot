@@ -27,6 +27,7 @@ public class ServiceTCP implements Runnable
 			PrintWriter pw = new PrintWriter(new OutputStreamWriter(this.sock.getOutputStream()));
 			BufferedReader br = new BufferedReader(new InputStreamReader(this.sock.getInputStream()));
 			
+			//Si on est déja une entité doubleur on accepte plus de connexion
 			if(this.entite.getRing().size() == 2){
 				pw.write("NOTC\n");
 				pw.flush();
@@ -64,6 +65,9 @@ public class ServiceTCP implements Runnable
 						pw.flush();
 						
 						this.sock.close();
+						
+						if(this.entite.isVerbeux())
+							System.out.println(this.entite.toString());
 						break;
 					case "DUPL":
 						String ipDupl = newcSplit[1];
@@ -86,8 +90,10 @@ public class ServiceTCP implements Runnable
 						
 						pw.write("ACKD " + this.entite.getLportRecvMess() + "\n");
 						pw.flush();
-						System.out.println(this.entite.toString());
 						this.sock.close();
+						
+						if(this.entite.isVerbeux())
+							System.out.println(this.entite.toString());
 						break;
 				}
 			}		

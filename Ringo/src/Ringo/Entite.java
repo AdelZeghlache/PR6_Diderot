@@ -7,33 +7,48 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.ConnectException;
 import java.net.DatagramSocket;
+import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.UUID;
 
+/**
+ * 
+ * @author ATTYE Camille, ZEGHLACHE Adel, ROUILLARD Charles
+ *
+ */
 public class Entite
 {
 	public static int nbTest = 0;//permet de savoir combien de test sont envoyé, pour savoir combien sont revenu
 	public static ArrayList<Ring> alRing = new ArrayList<Ring>(); //permet de savoir dans quel anneau le test ne s'est pas renvoyé
 	
-	private MulticastSocket mso;
+	//private MulticastSocket mso; //Permet de pouvoir joindre plusieurs groupes de multi diffusion pour les entités doubleurs
 	
-	private String fichierDemande;
-	private ArrayList<String> idmMem;
-	private ArrayList<Dests> alDests;
-	private ArrayList<Application> alApp;
-	private LinkedList<Ring> listRing;
-	private String id;
-	private int lportRecvMess;
-	private int portTcp;
-	private boolean sendRequest = true; //Permet de ne pas retransmettre le message REQ qui on a le fichier
+	private String fichierDemande; //permet de garder en mémoire le fichier demandé dans l'application de transfert
+	private ArrayList<String> idmMem; //Permet de garder en mémoire les id de message pour ne pas les retransmettre
+	private ArrayList<Dests> alDests; //contient la liste des detinataire a qui envoyer un message, est de taille 2 pour les entités doubleurs, 1 sinon
+	private ArrayList<Application> alApp; //Contient la liste des application installé pour chaque entité
+	private LinkedList<Ring> listRing; //Contient la liste des anneaux sur lequel on est, est de taille 2 pour les entités doubleurs
+	private String id; //L'id d'une entité
+	private int lportRecvMess; //Son pour d'écoute UDP
+	private int portTcp; //Son port découte TCP
+	private boolean sendRequest = true; //Permet de ne pas retransmettre le message REQ quand on a le fichier demandé par l'application TRANS
+	private boolean app = false; //Permet de savoir si le message est envoyé est APPL ou non
+	private boolean verbeux = false;
 
+	/**
+	 * Un constructeur avec 2 paramètre pour les entités qui vont s'insérer sur un autre entité
+	 * @param lportRecvMess
+	 * @param portTcp
+	 */
 	public Entite(int lportRecvMess,int portTcp)
 	{
 		this.fichierDemande = null;
@@ -47,6 +62,14 @@ public class Entite
 		this.portTcp = portTcp;
 	}
 
+	/**
+	 * Un constructeur pour créer une entité qui est directement sur un anneau 
+	 * @param ring
+	 * @param lportRecvMess
+	 * @param portTcp
+	 * @param ipNextMachine
+	 * @param lportNextMachine
+	 */
 	public Entite(Ring ring,int lportRecvMess,int portTcp,String ipNextMachine,int lportNextMachine)
 	{
 		this.fichierDemande = null;
@@ -64,67 +87,206 @@ public class Entite
 		this.alDests.add(d);
 	}
 	
+	//Getters and setters
+	
+	/**
+	 * 
+	 * @return fichierDemande
+	 */
 	public String getFichierDemande() {
 		return fichierDemande;
 	}
 
+	/**
+	 * 
+	 * @param fichierDemande
+	 */
 	public void setFichierDemande(String fichierDemande) {
 		this.fichierDemande = fichierDemande;
 	}
 
+	/**
+	 * 
+	 * @return idmMem
+	 */
 	public ArrayList<String> getidmMem(){
 		return this.idmMem;
 	}
 	
+	/**
+	 * 
+	 * @return alDests
+	 */
 	public ArrayList<Dests> getAlDests() {
 		return alDests;
 	}
 
+	/**
+	 * 
+	 * @return alApp
+	 */
 	public ArrayList<Application> getAlApp() {
 		return alApp;
 	}
 
+	/**
+	 * 
+	 * @return listRing
+	 */
 	public LinkedList<Ring> getRing() {
 		return listRing;
 	}
 	
+	/**
+	 * 
+	 * @return id
+	 */
 	public String getId(){
 		return id;
 	}
 
+	/**
+	 * 
+	 * @param id
+	 */
 	public void setId(String id) {
 		this.id = id;
 	}
 
+	/**
+	 * 
+	 * @return lportRecvMess
+	 */
 	public int getLportRecvMess() {
 		return lportRecvMess;
 	}
 
+	/**
+	 * 
+	 * @param lportRecvMess
+	 */
 	public void setLportRecvMess(int lportRecvMess) {
 		this.lportRecvMess = lportRecvMess;
 	}
 
+	/**
+	 * 
+	 * @return portTcp
+	 */
 	public int getPortTcp() {
 		return portTcp;
 	}
 
+	/**
+	 * 
+	 * @param portTcp
+	 */
 	public void setPortTcp(int portTcp) {
 		this.portTcp = portTcp;
 	}
 	
-	public MulticastSocket getMso()
-	{
-		return this.mso;
-	}
+	/**
+	 * 
+	 * @return mso
+	 */
+//	public MulticastSocket getMso()
+//	{
+//		return this.mso;
+//	}
 	
+	/**
+	 * 
+	 * @return sendRequest
+	 */
 	public boolean isSendRequest() {
 		return sendRequest;
 	}
 
+	/**
+	 * 
+	 * @param sendFile
+	 */
 	public void setSendRequest(boolean sendFile) {
 		this.sendRequest = sendFile;
 	}
 	
+	/**
+	 * 
+	 * @return app
+	 */
+	public boolean isApp() {
+		return app;
+	}
+
+	/**
+	 * 
+	 * @param app
+	 */
+	public void setApp(boolean app) {
+		this.app = app;
+	}
+	
+	/**
+	 * 
+	 * @return verbeux
+	 */
+	public boolean isVerbeux() {
+		return verbeux;
+	}
+
+	/**
+	 * 
+	 * @param verbeux
+	 */
+	public void setVerbeux(boolean verbeux) {
+		this.verbeux = verbeux;
+	}
+	
+	public String convertIpIn15Bytes(String ip)
+	{
+		return null;
+	}
+	
+	/**
+	 * Permet de générer un id unique
+	 * @return
+	 */
+	public String generateUniqId()
+	{
+		return UUID.randomUUID().toString().substring(0, 8);
+	}
+	
+	/**
+	 * Permet de récuperer la première addresse ip qui n'est pas une addresse de loopback
+	 * @return
+	 * @throws SocketException
+	 */
+	public String getFirstNonLoopbackAddress() throws SocketException
+	{
+		Enumeration en = NetworkInterface.getNetworkInterfaces();
+		while(en.hasMoreElements()){
+			NetworkInterface i = (NetworkInterface)en.nextElement();
+			for(Enumeration en2 = i.getInetAddresses();en2.hasMoreElements();)
+			{
+				InetAddress addr = (InetAddress) en2.nextElement();
+				if(!addr.isLoopbackAddress()){
+					if(addr instanceof Inet4Address){
+						return addr.getHostAddress();
+					}
+				}
+			}
+		}
+		return null;
+	}
+	
+	/**
+	 * Permet a une entité de s'insérer sur un anneau en se connectant en TCP a la machine ipPrecMachine et sur le port portPrecMachine
+	 * @param ring
+	 * @param ipPrecMachine
+	 * @param portPrecMachine
+	 * @throws UnknownHostException
+	 * @throws IOException
+	 */
 	public void insert(Ring ring, String ipPrecMachine, int portPrecMachine) throws UnknownHostException, IOException
 	{
 		//tester si c'est déja insérer...
@@ -146,7 +308,7 @@ public class Entite
 		Dests d = new Dests(ip,port);
 		this.getAlDests().add(d);
 		
-		mess = "NEWC" + " " + InetAddress.getLocalHost().getHostAddress() + " " + this.getLportRecvMess() + "\n";
+		mess = "NEWC" + " " + this.getFirstNonLoopbackAddress() + " " + this.getLportRecvMess() + "\n";
 		pw.write(mess);
 		pw.flush();
 		
@@ -156,6 +318,14 @@ public class Entite
 		s.close();
 	}
 	
+	
+	/**
+	 * Permet de dumpliquer un anneau et de faire de la machine ipPrecMachine sur le port portPrecMachine (TCP) une entité doubleur
+	 * @param ring
+	 * @param ipPrecMachine
+	 * @param portPrecMachine
+	 * @throws IOException
+	 */
 	public void dupl(Ring ring, String ipPrecMachine, int portPrecMachine) throws IOException
 	{
 		try
@@ -172,7 +342,7 @@ public class Entite
 			//Pareil, le message est envoyé automatiquement donc de la bonne forme
 			String messSplit[] = mess.split(" ");
 			
-			mess = "DUPL" + " " + InetAddress.getLocalHost().getHostAddress() + " " + this.getLportRecvMess() + " " + ring.getIpMulticast() + " " + ring.getPortMulticast() + "\n";
+			mess = "DUPL" + " " + this.getFirstNonLoopbackAddress() + " " + this.getLportRecvMess() + " " + ring.getIpMulticast() + " " + ring.getPortMulticast() + "\n";
 			pw.write(mess);
 			pw.flush();
 			
@@ -189,16 +359,21 @@ public class Entite
 		}
 		catch(UnknownHostException e)
 		{
-			System.out.println("Impossible de se connecter � cette addresse");
+			System.out.println("Impossible de se connecter à cette addresse");
 			System.exit(-1);
 		}
 		catch(ConnectException e)
 		{
-			System.out.println("Addresse inacessible. Temps de connexion �coul�");
+			System.out.println("Addresse inacessible. Temps de connexion écoulé");
 			System.exit(-1);
 		}
 	}
 	
+
+	/**
+	 * Permet de lancer le service d'envoi de paquet UDP dans un nouveau Thread
+	 * @throws SocketException
+	 */
 	public void envoiUDP() throws SocketException
 	{
 		DatagramSocket dso;
@@ -208,6 +383,10 @@ public class Entite
 		t.start();
 	}
 	
+	/**
+	 * Permet re lancer le service re deception de paquet UDP dans un nouveau Thread
+	 * @throws SocketException
+	 */
 	public void recvUDP() throws SocketException
 	{
 		DatagramSocket dso;
@@ -217,6 +396,10 @@ public class Entite
 		t2.start();
 	}
 	
+	/**
+	 * Permet de lancer le service d'écoute de connecion TCP dans un nouveau Thread
+	 * @throws IOException
+	 */
 	public void listenTCP() throws IOException
 	{
 		ServerSocket server = new ServerSocket(this.getPortTcp());
@@ -229,9 +412,13 @@ public class Entite
 		}
 	}
 	
+	/**
+	 * Perlet d'écouter et d'envoyer des messages de lulti diffusion dans un nouveau Thread
+	 * @throws IOException
+	 */
 	public void listenMulticast() throws IOException
 	{
-		this.mso = new MulticastSocket(this.listRing.getFirst().getPortMulticast());
+		MulticastSocket mso = new MulticastSocket(this.listRing.getFirst().getPortMulticast());
 		ServiceMulticast sm = new ServiceMulticast(mso,this,InetAddress.getByName(this.getRing().getFirst().getIpMulticast()));
 		Thread t4 = new Thread(sm);
 		t4.start(); 
@@ -240,7 +427,11 @@ public class Entite
 	public String toString()
 	{
 		String ret = "";
-		ret += "Entité " + this.id + "\nMon port d'écoute UDP est " + this.lportRecvMess + "\n";
+		try {
+			ret += "Entité " + this.id + "\nAddresse IP : " + this.getFirstNonLoopbackAddress() + "\nMon port d'écoute UDP est " + this.lportRecvMess + "\n";
+		} catch (SocketException e){
+			e.printStackTrace();
+		}
 		if(this.getAlDests().size() == 1){
 			ret += "J'envoi mes messages a l'adresse " + this.getAlDests().get(0).getIp() + " et sur le port " + this.getAlDests().get(0).getPort() + "\n";
 			ret += "Je suis sur un anneau dont l'IP de multi difussion est " + this.getRing().getFirst().getIpMulticast() + " et donc le port de multi difussion est " + this.getRing().getFirst().getPortMulticast();

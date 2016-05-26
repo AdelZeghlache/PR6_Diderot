@@ -1,7 +1,6 @@
 package Ringo;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Scanner;
 
@@ -20,6 +19,9 @@ public class entite2
 			
 			e2.insert(r1,ip, 5555);
 			
+			if(e2.isVerbeux())
+				System.out.println(e2.toString());
+			
 			AppDiff ad = new AppDiff();
 			AppTransfert at = new AppTransfert();
 			
@@ -32,6 +34,11 @@ public class entite2
 			e2.listenMulticast();
 			
 			e2.listenTCP();
+		}
+		catch(UnknownHostException e)
+		{
+			System.out.println("Adresse IP inconnu ou invalide");
+			System.exit(-1);
 		}
 		catch(Exception e)
 		{

@@ -19,6 +19,10 @@ public class entite5
 			String ip = sc.nextLine();
 			
 			e5.dupl(r2,ip,5555);
+			
+			if(e5.isVerbeux())
+				System.out.println(e5.toString());
+			
 			e5.envoiUDP();
 			e5.recvUDP();
 			

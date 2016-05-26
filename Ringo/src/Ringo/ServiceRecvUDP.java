@@ -23,12 +23,16 @@ public class ServiceRecvUDP implements Runnable
 		{
 			try
 			{
-				this.entite.setSendRequest(true);
+				this.entite.setSendRequest(true); //par défaut on retransmet tous les messages
+				
 				byte[] data = new byte[512];
 				DatagramPacket paquet = new DatagramPacket(data,data.length);
 				this.dso.receive(paquet);
 				String st = new String(paquet.getData(),0,paquet.getLength());
-				System.out.println("J'ai recu " + st);
+				if(this.entite.isVerbeux())
+					System.out.println("J'ai recu " + st);
+				else
+					System.out.println(st);
 				String[] stSplit = st.split(" ");
 				String idm = stSplit[1];
 				
@@ -74,7 +78,8 @@ public class ServiceRecvUDP implements Runnable
 						{
 							ia = new InetSocketAddress(this.entite.getAlDests().get(i).getIp(),this.entite.getAlDests().get(i).getPort());
 							paquet = new DatagramPacket(st.getBytes(),st.getBytes().length,ia);
-							System.out.println("Je transmet " + new String(paquet.getData(),0,paquet.getLength()));
+							if(this.entite.isVerbeux())
+								System.out.println("Je transmet " + new String(paquet.getData(),0,paquet.getLength()));
 							this.dso.send(paquet);
 							this.entite.getidmMem().add(idm);
 						}
@@ -83,19 +88,20 @@ public class ServiceRecvUDP implements Runnable
 						switch(stSplit[0])
 						{
 							case "WHOS":
-								String idmMemb = UUID.randomUUID().toString().substring(0, 8);
+								String idmMemb = this.entite.generateUniqId();
 								String memb = "MEMB" + 
 											" " + 
 											idmMemb + 
 											" " + 
-											InetAddress.getLocalHost().getHostAddress() + 
+											this.entite.getFirstNonLoopbackAddress() + 
 											" " + 
 											this.entite.getLportRecvMess();
 								for(int i = 0;i<this.entite.getAlDests().size();i++)
 								{
 									ia = new InetSocketAddress(this.entite.getAlDests().get(i).getIp(),this.entite.getAlDests().get(i).getPort());
 									paquet = new DatagramPacket(memb.getBytes(),0,memb.length(),ia);
-									System.out.println("J'envoi " + memb);
+									if(this.entite.isVerbeux())
+										System.out.println("J'envoi " + memb);
 									this.dso.send(paquet);
 									this.entite.getidmMem().add(idmMemb);
 								}
@@ -117,13 +123,14 @@ public class ServiceRecvUDP implements Runnable
 									else
 									{
 										//On forme le message EYBG
-										String idmEybg = UUID.randomUUID().toString().substring(0, 8);
+										String idmEybg = this.entite.generateUniqId();
 										String eybg = "EYBG " + idmEybg;
 										
 										//On envoie le message EYBG
 										ia = new InetSocketAddress(ipSucc,portSucc); //On envoi le EYGB uniquement a celui qui a demandé GBYE
 										paquet = new DatagramPacket(eybg.getBytes(),0,eybg.length(),ia);
-										System.out.println("J'envoi " + eybg);
+										if(this.entite.isVerbeux())
+											System.out.println("J'envoi " + eybg);
 										this.dso.send(paquet);
 										this.entite.getidmMem().add(idmEybg);
 										
@@ -146,7 +153,8 @@ public class ServiceRecvUDP implements Runnable
 					else
 					{
 						//this.entite.getidmMem().remove(idm);
-						System.out.println("J'ai déja recu je ne transmet pas...");
+						if(this.entite.isVerbeux())
+							System.out.println("J'ai déja recu je ne transmet pas...");
 					}
 				}
 			}
