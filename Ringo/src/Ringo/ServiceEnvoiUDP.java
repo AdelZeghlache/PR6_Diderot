@@ -25,6 +25,7 @@ public class ServiceEnvoiUDP implements Runnable {
 		
 		boolean isTest = false;
 		boolean valid = false;
+		boolean app = true;
 		
 		String mess;
 		String messSplit[];
@@ -84,6 +85,30 @@ public class ServiceEnvoiUDP implements Runnable {
 						valid = false;
 						isTest = true;
 						break;
+					case "APPL":
+						if(this.entite.getAlApp().size() == 0)
+							System.out.println("Vous n'avez aucune application d'installer");
+						else
+						{
+							Scanner sc2 = new Scanner(System.in);
+							System.out.println("0. Retour");
+							for(int i = 0;i<this.entite.getAlApp().size();i++)
+							{
+								System.out.println(i+1 + ". " + this.entite.getAlApp().get(i).getId());
+							}
+							System.out.println("Faire un choix : ");
+							int choix = 0;
+							choix = sc2.nextInt();
+							while(choix < 0 || choix > this.entite.getAlApp().size())
+							{
+								System.out.println("Choix invalide, recommencer : ");
+								choix = sc2.nextInt();
+							}
+							app = true;
+							if(choix != 0)
+								this.entite.getAlApp().get(choix-1).exec(UUID.randomUUID().toString().substring(0,8),this.entite,this.dso);
+							break;
+						}
 					default:
 						valid = false;
 						break;	
@@ -132,7 +157,7 @@ public class ServiceEnvoiUDP implements Runnable {
 							this.dso.send(paquet);
 						}
 					}
-					else
+					else if(!app)
 					{
 						System.err.println("Message inconnu ou invalide...");
 					}

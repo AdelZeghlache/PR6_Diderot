@@ -15,7 +15,7 @@ public class entite5
 			Ring r2 = new Ring("236.255.255.255",9999);//On crée 2 fois le même objet avec les mêmes caractéristique, a changer
 			
 			Scanner sc = new Scanner(System.in);
-			System.out.println("l'IP � laquelle se connecter pour s'ins�rer : ");
+			System.out.println("l'IP à laquelle se connecter pour s'insérer : ");
 			String ip = sc.nextLine();
 			
 			e5.dupl(r2,ip,5555);

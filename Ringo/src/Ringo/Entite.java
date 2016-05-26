@@ -24,28 +24,35 @@ public class Entite
 	
 	private MulticastSocket mso;
 	
+	private String fichierDemande;
 	private ArrayList<String> idmMem;
 	private ArrayList<Dests> alDests;
+	private ArrayList<Application> alApp;
 	private LinkedList<Ring> listRing;
 	private String id;
 	private int lportRecvMess;
 	private int portTcp;
-	
+	private boolean sendRequest = true; //Permet de ne pas retransmettre le message REQ qui on a le fichier
+
 	public Entite(int lportRecvMess,int portTcp)
 	{
+		this.fichierDemande = null;
 		this.idmMem = new ArrayList<String>();
 		this.listRing = new LinkedList<Ring>();
+		this.alApp = new ArrayList<Application>();
 		this.alDests = new ArrayList<Dests>();
 
 		this.id = UUID.randomUUID().toString().substring(0, 8);
 		this.lportRecvMess = lportRecvMess;
 		this.portTcp = portTcp;
 	}
-	
+
 	public Entite(Ring ring,int lportRecvMess,int portTcp,String ipNextMachine,int lportNextMachine)
 	{
+		this.fichierDemande = null;
 		this.idmMem = new ArrayList<String>();
 		this.alDests = new ArrayList<Dests>();
+		this.alApp = new ArrayList<Application>();
 		this.listRing = new LinkedList<Ring>();
 		this.listRing.add(ring);
 		
@@ -57,6 +64,14 @@ public class Entite
 		this.alDests.add(d);
 	}
 	
+	public String getFichierDemande() {
+		return fichierDemande;
+	}
+
+	public void setFichierDemande(String fichierDemande) {
+		this.fichierDemande = fichierDemande;
+	}
+
 	public ArrayList<String> getidmMem(){
 		return this.idmMem;
 	}
@@ -65,6 +80,9 @@ public class Entite
 		return alDests;
 	}
 
+	public ArrayList<Application> getAlApp() {
+		return alApp;
+	}
 
 	public LinkedList<Ring> getRing() {
 		return listRing;
@@ -97,6 +115,14 @@ public class Entite
 	public MulticastSocket getMso()
 	{
 		return this.mso;
+	}
+	
+	public boolean isSendRequest() {
+		return sendRequest;
+	}
+
+	public void setSendRequest(boolean sendFile) {
+		this.sendRequest = sendFile;
 	}
 	
 	public void insert(Ring ring, String ipPrecMachine, int portPrecMachine) throws UnknownHostException, IOException
@@ -163,12 +189,12 @@ public class Entite
 		}
 		catch(UnknownHostException e)
 		{
-			System.out.println("Impossible de se connecter à cette addresse");
+			System.out.println("Impossible de se connecter ï¿½ cette addresse");
 			System.exit(-1);
 		}
 		catch(ConnectException e)
 		{
-			System.out.println("Addresse inacessible. Temps de connexion écoulé");
+			System.out.println("Addresse inacessible. Temps de connexion ï¿½coulï¿½");
 			System.exit(-1);
 		}
 	}

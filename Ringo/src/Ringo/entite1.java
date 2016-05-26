@@ -15,6 +15,13 @@ public class entite1
 		
 		Entite e1 = new Entite(r1,6969,5555,InetAddress.getLocalHost().getHostAddress(),6969);
 		
+		//On créer et ajoute les applications
+		AppDiff ad = new AppDiff();
+		AppTransfert at = new AppTransfert();
+		
+		e1.getAlApp().add(ad);
+		e1.getAlApp().add(at);
+		
 		e1.envoiUDP();
 		e1.recvUDP();
 		
