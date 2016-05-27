@@ -93,7 +93,9 @@ public class ServiceRecvUDP implements Runnable
 											" " + 
 											idmMemb + 
 											" " + 
-											this.entite.getFirstNonLoopbackAddress() + 
+											this.entite.getId() + 
+											" " +
+											this.entite.convertIpIn15Bytes(this.entite.getFirstNonLoopbackAddress()) + 
 											" " + 
 											this.entite.getLportRecvMess();
 								for(int i = 0;i<this.entite.getAlDests().size();i++)

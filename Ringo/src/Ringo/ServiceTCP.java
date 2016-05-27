@@ -38,11 +38,11 @@ public class ServiceTCP implements Runnable
 				//On suppose que les messages sont automatiquement envoyé
 				String welc = "WELC" + 
 								" " + 
-								this.entite.getAlDests().get(0).getIp() + //Le premier élément de l'arraylist est le destinaire de l'anneau courant
+								this.entite.convertIpIn15Bytes(this.entite.getAlDests().get(0).getIp()) + //Le premier élément de l'arraylist est le destinaire de l'anneau courant
 								" " + 
 								this.entite.getAlDests().get(0).getPort() + 
 								" " + 
-								this.entite.getRing().getFirst().getIpMulticast() + 
+								this.entite.convertIpIn15Bytes(this.entite.getRing().getFirst().getIpMulticast()) + 
 								" " + 
 								this.entite.getRing().getFirst().getPortMulticast() + "\n";
 				pw.write(welc);

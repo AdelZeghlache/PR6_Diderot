@@ -138,7 +138,6 @@ public class AppTransfert extends Application
 			}
 			else
 			{
-//				System.out.println("J'ai pas le fichier");
 				entite.setSendRequest(true);
 			}
 		}
@@ -156,7 +155,7 @@ public class AppTransfert extends Application
 			entite.setSendRequest(false);
 			try 
 			{
-				BufferedWriter out = new BufferedWriter(new FileWriter("bis" + entite.getFichierDemande(),true));
+				BufferedWriter out = new BufferedWriter(new FileWriter(entite.getFichierDemande(),true));
 				String toWrite = "";
 				for(int j = 7;j<split.length;j++)
 				{

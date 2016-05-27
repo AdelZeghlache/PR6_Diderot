@@ -244,7 +244,7 @@ public class Entite
 	
 	public String convertIpIn15Bytes(String ip)
 	{
-		return null;
+		return ip;
 	}
 	
 	/**
@@ -289,33 +289,39 @@ public class Entite
 	 */
 	public void insert(Ring ring, String ipPrecMachine, int portPrecMachine) throws UnknownHostException, IOException
 	{
-		//tester si c'est déja insérer...
-		Socket s = new Socket(ipPrecMachine, portPrecMachine);
-		
-		PrintWriter pw = new PrintWriter(new OutputStreamWriter(s.getOutputStream()));
-		BufferedReader br = new BufferedReader(new InputStreamReader(s.getInputStream()));
-		
-		String mess = br.readLine();
-		System.out.println(mess);
-		
-		//Pareil, le message est envoyé automatiquement donc de la bonne forme
-		String messSplit[] = mess.split(" ");
-		String ip = messSplit[1];
-		int port = Integer.parseInt(messSplit[2]);
-		
-		this.listRing.add(ring);
-		
-		Dests d = new Dests(ip,port);
-		this.getAlDests().add(d);
-		
-		mess = "NEWC" + " " + this.getFirstNonLoopbackAddress() + " " + this.getLportRecvMess() + "\n";
-		pw.write(mess);
-		pw.flush();
-		
-		mess = br.readLine();
-		System.out.println(mess);
-		
-		s.close();
+		try {
+			//tester si c'est déja insérer...
+			Socket s = new Socket(ipPrecMachine, portPrecMachine);
+			
+			PrintWriter pw = new PrintWriter(new OutputStreamWriter(s.getOutputStream()));
+			BufferedReader br = new BufferedReader(new InputStreamReader(s.getInputStream()));
+			
+			String mess = br.readLine();
+			System.out.println(mess);
+			
+			//Pareil, le message est envoyé automatiquement donc de la bonne forme
+			String messSplit[] = mess.split(" ");
+			String ip = messSplit[1];
+			int port = Integer.parseInt(messSplit[2]);
+			
+			this.listRing.add(ring);
+			
+			Dests d = new Dests(ip,port);
+			this.getAlDests().add(d);
+			
+			mess = "NEWC" + " " + this.convertIpIn15Bytes(this.getFirstNonLoopbackAddress()) + " " + this.getLportRecvMess() + "\n";
+			pw.write(mess);
+			pw.flush();
+			
+			mess = br.readLine();
+			System.out.println(mess);
+			
+			s.close();
+		} catch (UnknownHostException e)
+		{
+			System.out.println("Addresse inconnu ou invalide");
+			System.exit(-1);
+		}
 	}
 	
 	
@@ -342,7 +348,7 @@ public class Entite
 			//Pareil, le message est envoyé automatiquement donc de la bonne forme
 			String messSplit[] = mess.split(" ");
 			
-			mess = "DUPL" + " " + this.getFirstNonLoopbackAddress() + " " + this.getLportRecvMess() + " " + ring.getIpMulticast() + " " + ring.getPortMulticast() + "\n";
+			mess = "DUPL" + " " + this.convertIpIn15Bytes(this.getFirstNonLoopbackAddress()) + " " + this.getLportRecvMess() + " " + ring.getIpMulticast() + " " + ring.getPortMulticast() + "\n";
 			pw.write(mess);
 			pw.flush();
 			

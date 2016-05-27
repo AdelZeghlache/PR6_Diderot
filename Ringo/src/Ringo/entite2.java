@@ -14,10 +14,30 @@ public class entite2
 			Ring r1 = new Ring("235.255.255.255",9998);//On crée 2 fois le même objet avec les mêmes caractéristique, a changer
 			
 			Scanner sc = new Scanner(System.in);
+			
+			System.out.println("Activer le mode verbeux ?\n0. Non\n1. Oui\n");
+			int choix = sc.nextInt();
+			while(choix != 0 && choix != 1)
+			{
+				
+				System.out.println("Choix invalide, taper 0 pour Non ou 1 pour Oui : ");
+				choix = sc.nextInt();
+			}
+			
+			sc = new Scanner(System.in);
 			System.out.println("l'IP à laquelle se connecter pour s'insérer : ");
 			String ip = sc.nextLine();
 			
-			e2.insert(r1,ip, 5555);
+			sc = new Scanner(System.in);
+			System.out.println("Le port ? : ");
+			int port = sc.nextInt();
+			
+			e2.insert(r1,ip, port);
+			
+			if(choix == 1)
+			{
+				e2.setVerbeux(true);
+			}
 			
 			if(e2.isVerbeux())
 				System.out.println(e2.toString());

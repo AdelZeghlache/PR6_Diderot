@@ -57,7 +57,7 @@ public class ServiceEnvoiUDP implements Runnable {
 						else
 						{
 							idm = this.entite.generateUniqId();
-							realMess = messSplit[0] + " " + idm + " " + this.entite.getFirstNonLoopbackAddress() + " " + this.entite.getLportRecvMess() + " " + this.entite.getAlDests().get(0).getIp() + " " + this.entite.getAlDests().get(0).getPort();
+							realMess = messSplit[0] + " " + idm + " " + this.entite.convertIpIn15Bytes(this.entite.getFirstNonLoopbackAddress()) + " " + this.entite.getLportRecvMess() + " " + this.entite.convertIpIn15Bytes(this.entite.getAlDests().get(0).getIp()) + " " + this.entite.getAlDests().get(0).getPort();
 							valid = true;
 							this.entite.getidmMem().add(idm);
 							break;
@@ -68,7 +68,7 @@ public class ServiceEnvoiUDP implements Runnable {
 						for(int i = 0;i<this.entite.getAlDests().size();i++)
 						{
 							idm = this.entite.generateUniqId();
-							realMess = messSplit[0] + " " + idm + " " + this.entite.getRing().get(i).getIpMulticast() + " " + this.entite.getRing().get(i).getPortMulticast();
+							realMess = messSplit[0] + " " + idm + " " + this.entite.convertIpIn15Bytes(this.entite.getRing().get(i).getIpMulticast()) + " " + this.entite.getRing().get(i).getPortMulticast();
 							Ring r = new Ring(this.entite.getRing().get(i).getIpMulticast(),this.entite.getRing().get(i).getPortMulticast());
 							Entite.alRing.add(r);
 							this.entite.getidmMem().add(idm);
@@ -107,8 +107,9 @@ public class ServiceEnvoiUDP implements Runnable {
 							this.entite.setApp(true);
 							if(choix != 0)
 								this.entite.getAlApp().get(choix-1).exec(this.entite.generateUniqId(),this.entite,this.dso);
-							break;
 						}
+						valid = false;
+						break;
 					default:
 						valid = false;
 						break;	
@@ -144,6 +145,7 @@ public class ServiceEnvoiUDP implements Runnable {
 				}
 				else //Sinon c'est un autre message, on peut vérifier si il est valide
 				{
+					System.out.println("VALID = " + valid);
 					if(valid)
 					{
 						byte[] data = realMess.getBytes();
