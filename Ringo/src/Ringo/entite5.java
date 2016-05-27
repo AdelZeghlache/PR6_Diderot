@@ -20,7 +20,6 @@ public class entite5
 			int choix = sc.nextInt();
 			while(choix != 0 && choix != 1)
 			{
-				
 				System.out.println("Choix invalide, taper 0 pour Non ou 1 pour Oui : ");
 				choix = sc.nextInt();
 			}

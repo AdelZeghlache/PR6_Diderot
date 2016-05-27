@@ -359,9 +359,15 @@ public class Entite
 			System.out.println(mess);
 			
 			s.close();
-		} catch (UnknownHostException e)
+		}
+		catch(UnknownHostException e)
 		{
-			System.out.println("Addresse inconnu ou invalide");
+			System.out.println("Impossible de se connecter à cette addresse");
+			System.exit(-1);
+		}
+		catch(ConnectException e)
+		{
+			System.out.println("Addresse inacessible. Temps de connexion écoulé");
 			System.exit(-1);
 		}
 	}
