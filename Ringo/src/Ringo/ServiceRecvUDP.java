@@ -67,7 +67,6 @@ public class ServiceRecvUDP implements Runnable
 						}
 						break;
 				}
-				
 				if(this.entite.isSendRequest())
 				{
 					if(!this.entite.getidmMem().contains(idm))

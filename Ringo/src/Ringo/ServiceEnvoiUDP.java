@@ -145,7 +145,6 @@ public class ServiceEnvoiUDP implements Runnable {
 				}
 				else //Sinon c'est un autre message, on peut vérifier si il est valide
 				{
-					System.out.println("VALID = " + valid);
 					if(valid)
 					{
 						byte[] data = realMess.getBytes();

@@ -11,7 +11,6 @@ public class entite2
 		try
 		{
 			Entite e2 = new Entite(7070,5556); 
-			Ring r1 = new Ring("235.255.255.255",9998);//On crée 2 fois le même objet avec les mêmes caractéristique, a changer
 			
 			Scanner sc = new Scanner(System.in);
 			
@@ -32,12 +31,10 @@ public class entite2
 			System.out.println("Le port ? : ");
 			int port = sc.nextInt();
 			
-			e2.insert(r1,ip, port);
+			e2.insert(ip, port);
 			
 			if(choix == 1)
-			{
 				e2.setVerbeux(true);
-			}
 			
 			if(e2.isVerbeux())
 				System.out.println(e2.toString());

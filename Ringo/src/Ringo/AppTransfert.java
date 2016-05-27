@@ -56,7 +56,7 @@ public class AppTransfert extends Application
 	}
 
 	public void traiter(String mess,Entite entite,DatagramSocket dso)
-	{
+	{	
 		String split[] = mess.split(" ");
 		
 		if(split[3].equals("REQ"))
@@ -70,19 +70,11 @@ public class AppTransfert extends Application
 				{
 					Path path = Paths.get("./" + filename);
 					byte[] file = Files.readAllBytes(path);
-					
 					int nbmess = (int)Math.ceil((double)file.length/(512.0-49.0));
-					
-//					On met en little endian
-//					ByteBuffer bb = ByteBuffer.allocate(8);
-//				    bb.order(ByteOrder.LITTLE_ENDIAN);
-//				    bb.putInt(nbmess);
-//				    bb.flip();
-					
 				    String idm = entite.generateUniqId();
 				    this.idTrans = entite.generateUniqId();
-					String ret = "APPL " + idm + " " + this.id + " " + "ROK " + this.idTrans + " " + filename.length() + " " + filename + " " + nbmess;
-
+					String ret = "APPL " + idm + " " + this.id + " " + "ROK " + this.idTrans + " " + filename.length() + " " + filename + " " + entite.convertNuMessIn8Bytes(String.valueOf(nbmess));
+					
 					byte[] data = ret.getBytes();
 					InetSocketAddress ia;
 					DatagramPacket paquet;
@@ -110,7 +102,7 @@ public class AppTransfert extends Application
 					for(int j = 0;j<nbmess;j++)
 					{
 						String content = new String(Arrays.copyOfRange(file, min, max),0,Arrays.copyOfRange(file, min, max).length);
-						String sen = "APPL " + entite.generateUniqId() + " " + this.id + " " + "SEN " + this.idTrans + " " + j + " " + content.length() + " " + content;
+						String sen = "APPL " + entite.generateUniqId() + " " + this.id + " " + "SEN " + this.idTrans + " " + entite.convertNuMessIn8Bytes(String.valueOf(j)) + " " + entite.convertSizeContentIn3Bytes(String.valueOf(content.length())) + " " + content;
 						min = max;
 						if(j == nbmess-2)
 							max = file.length;
@@ -151,18 +143,18 @@ public class AppTransfert extends Application
 		
 		if(split[3].equals("SEN") && split[4].equals(idTrans))
 		{
+			String first = mess.substring(0,49);
+			split = first.split(" ");
+			
+			String contenu = mess.substring(49);
+
 			//Je recoit un fichier morceau par morceau
 			entite.setSendRequest(false);
 			try 
 			{
 				BufferedWriter out = new BufferedWriter(new FileWriter(entite.getFichierDemande(),true));
-				String toWrite = "";
-				for(int j = 7;j<split.length;j++)
-				{
-					toWrite += split[j] + " ";
-				}
 				
-				out.write(toWrite);
+				out.write(contenu);
 				out.close();
 				
 				if(i == nummess)

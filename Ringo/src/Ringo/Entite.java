@@ -244,7 +244,45 @@ public class Entite
 	
 	public String convertIpIn15Bytes(String ip)
 	{
-		return ip;
+		String[] split = ip.split("\\.");
+		for(int i = 0;i<split.length;i++)
+		{
+			if(split[i].length() == 1)
+				split[i] = "00" + split[i];
+			else if(split[i].length() == 2)
+				split[i] = "0" + split[i];
+		}
+		String ret = "";
+		for(int i = 0;i<split.length;i++)
+		{
+			if(i != split.length-1)
+				ret += split[i] + ".";
+			else
+				ret += split[i];
+		}
+		return ret;
+	}
+	
+	public String convertNuMessIn8Bytes(String nummess)
+	{
+		String j = "";
+		while(j.length()<8)
+		{
+			j += "0" + nummess;
+		}
+		return j;
+	}
+	
+	public String convertSizeContentIn3Bytes(String sizeContent)
+	{
+		String j = "";
+		if(sizeContent.length() == 1)
+			j = "00" + sizeContent;
+		else if(j.length() == 2)
+			j = "0" + sizeContent;
+		else
+			j = sizeContent;
+		return j;
 	}
 	
 	/**
@@ -287,7 +325,7 @@ public class Entite
 	 * @throws UnknownHostException
 	 * @throws IOException
 	 */
-	public void insert(Ring ring, String ipPrecMachine, int portPrecMachine) throws UnknownHostException, IOException
+	public void insert(String ipPrecMachine, int portPrecMachine) throws UnknownHostException, IOException
 	{
 		try {
 			//tester si c'est déja insérer...
@@ -303,6 +341,10 @@ public class Entite
 			String messSplit[] = mess.split(" ");
 			String ip = messSplit[1];
 			int port = Integer.parseInt(messSplit[2]);
+			String ipDiff = messSplit[3];
+			int portDiff = Integer.parseInt(messSplit[4]);
+			
+			Ring ring = new Ring(ipDiff,portDiff);
 			
 			this.listRing.add(ring);
 			
@@ -310,7 +352,7 @@ public class Entite
 			this.getAlDests().add(d);
 			
 			mess = "NEWC" + " " + this.convertIpIn15Bytes(this.getFirstNonLoopbackAddress()) + " " + this.getLportRecvMess() + "\n";
-			pw.write(mess);
+			pw.print(mess);
 			pw.flush();
 			
 			mess = br.readLine();

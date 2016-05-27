@@ -24,9 +24,7 @@ public class entite1
 		Entite e1 = new Entite(r1,6969,5555,InetAddress.getLocalHost().getHostAddress(),6969);
 		
 		if(choix == 1)
-		{
 			e1.setVerbeux(true);
-		}
 		
 		if(e1.isVerbeux())
 			System.out.println(e1.toString());
